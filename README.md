@@ -1,9 +1,11 @@
 # Dossier
 Dossier the way to parse string in schemas and vice versa.
 
-# Examples
-## Delimited strings
-### Define a schema
+## Examples
+### Delimited strings
+
+Define a schema
+
 ```elixir
 defmodule ProductSchema do
   use Dossier.Schema
@@ -18,7 +20,9 @@ defmodule ProductSchema do
   end
 end
 ```
-### Parse a string into a ProductSchema
+
+Parse a string into a ProductSchema
+
 ```elixir
 str = "1|apple|used in apple pies|1.5"
 product = ProductSchema.parse(str)
@@ -30,7 +34,9 @@ iex> %ProductSchema{
   price: 1.5
 }
 ```
-### Parse a Schema into string
+
+Parse a Schema into string
+
 ```elixir
 %ProductSchema{
   description: "used in strawberry pies",
@@ -52,7 +58,18 @@ iex> "350|Strawberry|used in strawberry pies|10"
 - [ ] Create a fixed length string dump (dump(str) :: schema -> str) 
 - [ ] Create a system for suport a custom types, parses, formaters
 
-# Contribute
+## Contribute
 Just fork the repo, make your change, and send me a pull request.
 
 Or, feel free to file and issue and start a discussion about a new feature you have in mind.
+
+### Running tests
+
+Clone the repo and fetch its dependencies:
+
+```
+$ git clone https://github.com/hiagomeels/dossier.git
+$ cd dossier
+$ mix deps.get
+$ mix test
+```
