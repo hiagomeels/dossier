@@ -1,5 +1,5 @@
 # Dossier
-Dossier the easy way to parse string in schemas and vice versa.
+Dossier the way to parse string in schemas and vice versa.
 
 # Examples
 ## Delimited strings
