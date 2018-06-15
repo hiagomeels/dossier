@@ -54,8 +54,10 @@ iex> "350|Strawberry|used in strawberry pies|10"
 - [x] Create a schema mapping equals to Ecto =]
 - [x] Create a delimited string reader (parse :: str -> schema)
 - [x] Create a delimited string dump (dump(str) :: schema -> str)
-- [ ] Create a fixed length string reader (parse :: str -> schema)
 - [ ] Create a fixed length string dump (dump(str) :: schema -> str) 
+- [ ] Create a fixed length string reader (parse :: str -> schema)
+- [ ] Create a suport for all primitive types
+- [ ] Create a suport for date parsers
 - [ ] Create a system for suport a custom types, parses, formaters
 
 ## Contribute
