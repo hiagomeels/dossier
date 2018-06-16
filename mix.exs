@@ -29,6 +29,9 @@ defmodule Dossier.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:ex_doc, "~> 0.16", only: :dev, runtime: false}]
+    [
+      {:ex_doc, "~> 0.16", only: :dev, runtime: false},
+      {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false}
+    ]
   end
 end

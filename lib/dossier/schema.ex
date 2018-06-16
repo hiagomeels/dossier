@@ -1,12 +1,12 @@
 defmodule Dossier.Schema do
- @doc false
+ @moduledoc false
  defmacro __using__(_) do
     quote do
       import Dossier.Schema, only: [schema: 1]
 
       @delimiter  ","
       @fixed_size false
-      
+
       Module.register_attribute(__MODULE__, :fields, accumulate: true)
       Module.register_attribute(__MODULE__, :struct_fields, accumulate: true)
     end
@@ -19,7 +19,7 @@ defmodule Dossier.Schema do
   defp __schema__(block) do
 
     prelude =
-      quote do      
+      quote do
         try do
           import Dossier.Schema
           unquote(block)
@@ -35,7 +35,7 @@ defmodule Dossier.Schema do
         fields      = @fields |> Enum.reverse
 
         if fixed_size do
-            fields 
+            fields
             |> Enum.map_reduce(0, fn {_, _, opts}, acc ->
               acc = opts[:size] + acc
               {0, acc}
@@ -43,13 +43,13 @@ defmodule Dossier.Schema do
             |> elem(1)
             |> case do
               size when size == fixed_size -> :size_valid
-              size -> 
+              size ->
                 raise ArgumentError, "\nThe mappead size of fields has different of @fixed_size)" <>
                                      "\nfixed_size..: #{fixed_size}" <>
                                      "\nmappead size: #{size}"
             end
         end
-        
+
         defstruct @struct_fields
 
         def __schema__(:delimiter), do: unquote(delimiter)
@@ -70,9 +70,9 @@ defmodule Dossier.Schema do
     quote do
       unquote(prelude)
       unquote(postlude)
-    end  
+    end
   end
-  
+
   # API
 
   @doc """
@@ -94,7 +94,7 @@ defmodule Dossier.Schema do
   def __parse__(mod, str) when is_binary(str) do
     struct      = mod.__struct__
     fields      = mod.__schema__(:fields)
-    fixed_size  = mod.__schema__(:fixed_size)    
+    fixed_size  = mod.__schema__(:fixed_size)
 
     if fixed_size do
       if String.length(str) == fixed_size do
@@ -106,7 +106,7 @@ defmodule Dossier.Schema do
     else
       map = parse_delimited(mod, fields, str)
       Map.merge(struct, map)
-    end    
+    end
   end
   def __parse__(_mod, _str), do: {:error, :invalid_string}
 
@@ -116,23 +116,23 @@ defmodule Dossier.Schema do
 
     fields
     |> Enum.with_index
-    |> Enum.map(fn {field, idx} -> 
+    |> Enum.map(fn {field, idx} ->
       type  = mod.__schema__(:type, field)
       value = Enum.at(values, idx)
-      
+
       {field, parse_field(value, type)}
     end)
-    |> Enum.into(%{})    
+    |> Enum.into(%{})
   end
   defp parse_fixed(mod, fields, str) do
     fields
-    |> Enum.map_reduce(0, fn field, start -> 
+    |> Enum.map_reduce(0, fn field, start ->
       type  = mod.__schema__(:type, field)
       opts  = mod.__schema__(:opts, field)
       size  = opts[:size]
       value = String.slice(str, start, size)
       start = start + size
-      
+
       {{field, parse_field(value, type)}, start}
     end)
     |> elem(0)
@@ -165,22 +165,21 @@ defmodule Dossier.Schema do
   def dump(_schema), do: false
 
   @doc false
-  def __dump__(mod, schema) do 
+  def __dump__(mod, schema) do
     delimiter = mod.__schema__(:delimiter)
     fields    = mod.__schema__(:fields)
-    
+
     fields
-    |> Enum.map(fn field ->  
+    |> Enum.map(fn field ->
       schema
       |> Map.has_key?(field)
       |> case do
-        true -> Map.get(schema, field) |> to_string
+        true -> schema |> Map.get(field) |> to_string
         _ -> raise ArgumentError, "then field :#{inspect field} not found in schema"
       end
     end)
     |> Enum.join(delimiter)
   end
-
 
   ## Callbacks
   @doc false
@@ -199,7 +198,7 @@ defmodule Dossier.Schema do
 
   defp check_field_size!(mod, name, opts) do
     fixed_size = Module.get_attribute(mod, :fixed_size)
-    
+
     if fixed_size do
       size = opts[:size] || 0
       if size <= 0 do
@@ -208,7 +207,7 @@ defmodule Dossier.Schema do
     end
   end
 
-  defp define_field(mod, name, type, opts) do    
+  defp define_field(mod, name, type, opts) do
     put_struct_field(mod, name)
     Module.put_attribute(mod, :fields, {name, type, opts})
   end

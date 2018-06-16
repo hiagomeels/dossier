@@ -15,22 +15,22 @@ defmodule Dossier.SchemaTest do
   end
 
   test "ProductSchema - schema metadata" do
-    assert ProductSchema.__schema__(:delimiter)             == ","
-    assert ProductSchema.__schema__(:fields)             == [:id, :name, :description, :price]
+    assert ProductSchema.__schema__(:delimiter) == ","
+    assert ProductSchema.__schema__(:fields) == [:id, :name, :description, :price]
   end
 
   test "ProductSchema - types metadata" do
-    assert ProductSchema.__schema__(:type, :id)           == :integer
-    assert ProductSchema.__schema__(:type, :name)         == :string
-    assert ProductSchema.__schema__(:type, :description)  == :string
-    assert ProductSchema.__schema__(:type, :price)        == :float
+    assert ProductSchema.__schema__(:type, :id) == :integer
+    assert ProductSchema.__schema__(:type, :name) == :string
+    assert ProductSchema.__schema__(:type, :description) == :string
+    assert ProductSchema.__schema__(:type, :price) == :float
   end
 
   test "ProductSchema - sources metadata" do
-    assert ProductSchema.__schema__(:field_source, :id)           == :id
-    assert ProductSchema.__schema__(:field_source, :name)         == :name
-    assert ProductSchema.__schema__(:field_source, :description)  == :description
-    assert ProductSchema.__schema__(:field_source, :price)        == :price
+    assert ProductSchema.__schema__(:field_source, :id) == :id
+    assert ProductSchema.__schema__(:field_source, :name) == :name
+    assert ProductSchema.__schema__(:field_source, :description) == :description
+    assert ProductSchema.__schema__(:field_source, :price) == :price
   end
 
   test "ProductSchema - check struct" do
@@ -41,9 +41,8 @@ defmodule Dossier.SchemaTest do
   end
 
   test "ProductSchema - check string parse" do
-    
     assert ProductSchema.parse(nil) == {:error, :invalid_string}
-    
+
     str = "1,apple,used in apple pies,1.5"
     product = ProductSchema.parse(str)
 
@@ -54,16 +53,16 @@ defmodule Dossier.SchemaTest do
   end
 
   test "ProductSchema - check dump map to string" do
-    product = 
+    product =
       %ProductSchema{
         description: "used in strawberry pies",
         id: 350,
         name: "Strawberry",
         price: 10.0
       }
-      
+
     str = "350,Strawberry,used in strawberry pies,10.0"
-    
+
     assert ProductSchema.dump(product) == str
   end
 
@@ -79,13 +78,13 @@ defmodule Dossier.SchemaTest do
   end
 
   test "CostumerSchema - schema metadata" do
-    assert CostumerSchema.__schema__(:delimiter)             == "|"
-    assert CostumerSchema.__schema__(:fields)             == [:id, :name]
+    assert CostumerSchema.__schema__(:delimiter) == "|"
+    assert CostumerSchema.__schema__(:fields) == [:id, :name]
   end
 
   test "CostumerSchema - types metadata" do
-    assert CostumerSchema.__schema__(:type, :id)           == :integer
-    assert CostumerSchema.__schema__(:type, :name)         == :string
+    assert CostumerSchema.__schema__(:type, :id) == :integer
+    assert CostumerSchema.__schema__(:type, :name) == :string
   end
 
   test "CostumerSchema - check struct" do
@@ -95,7 +94,7 @@ defmodule Dossier.SchemaTest do
 
   test "CostumerSchema - check parse string" do
     assert CostumerSchema.parse(nil) == {:error, :invalid_string}
-    
+
     str = "171|John Doe"
     customer = CostumerSchema.parse(str)
 
@@ -105,7 +104,7 @@ defmodule Dossier.SchemaTest do
 
   test "CostumerSchema - check dump schema to string" do
     str = "171|John Doe"
-    customer = 
+    customer =
       %CostumerSchema{
         id: 171,
         name: "John Doe"
@@ -128,43 +127,42 @@ defmodule Dossier.SchemaTest do
   end
 
   test "ProducFixedSchema - schema metadata" do
-    assert ProducFixedSchema.__schema__(:fixed_size)         == 60
-    assert ProducFixedSchema.__schema__(:fields)             == [:id, :name, :description, :price]
+    assert ProducFixedSchema.__schema__(:fixed_size) == 60
+    assert ProducFixedSchema.__schema__(:fields) == [:id, :name, :description, :price]
   end
 
   test "ProducFixedSchema - types metadata" do
-    assert ProducFixedSchema.__schema__(:type, :id)           == :integer
-    assert ProducFixedSchema.__schema__(:type, :name)         == :string
-    assert ProducFixedSchema.__schema__(:type, :description)  == :string
-    assert ProducFixedSchema.__schema__(:type, :price)        == :float
+    assert ProducFixedSchema.__schema__(:type, :id) == :integer
+    assert ProducFixedSchema.__schema__(:type, :name) == :string
+    assert ProducFixedSchema.__schema__(:type, :description) == :string
+    assert ProducFixedSchema.__schema__(:type, :price) == :float
   end
 
   test "ProducFixedSchema - opts metadata" do
-    assert ProducFixedSchema.__schema__(:opts, :id)           == [size: 6]
-    assert ProducFixedSchema.__schema__(:opts, :name)         == [size: 15]
-    assert ProducFixedSchema.__schema__(:opts, :description)  == [size: 24]
-    assert ProducFixedSchema.__schema__(:opts, :price)        == [size: 15]
+    assert ProducFixedSchema.__schema__(:opts, :id) == [size: 6]
+    assert ProducFixedSchema.__schema__(:opts, :name) == [size: 15]
+    assert ProducFixedSchema.__schema__(:opts, :description) == [size: 24]
+    assert ProducFixedSchema.__schema__(:opts, :price) == [size: 15]
   end
 
   test "ProducFixedSchema - check struct" do
     product = %ProducFixedSchema{}
-    assert product.id          == nil
-    assert product.name        == nil
+    assert product.id == nil
+    assert product.name == nil
     assert product.description == nil
-    assert product.price       == nil
+    assert product.price == nil
   end
 
   test "ProducFixedSchema - check parse string" do
     assert ProducFixedSchema.parse(nil) == {:error, :invalid_string}
-    assert ProducFixedSchema.parse("")  == {:error, :invalid_size}
+    assert ProducFixedSchema.parse("") == {:error, :invalid_size}
 
     str = "000171APPLE          used in apple pies      000000000014.00"
     customer = ProducFixedSchema.parse(str)
 
-    assert customer.id          == 171
-    assert customer.name        == "APPLE"
+    assert customer.id == 171
+    assert customer.name == "APPLE"
     assert customer.description == "used in apple pies"
-    assert customer.price       == 14.00
+    assert customer.price == 14.00
   end
-
 end
