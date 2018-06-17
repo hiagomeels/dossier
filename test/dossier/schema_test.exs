@@ -7,10 +7,10 @@ defmodule Dossier.SchemaTest do
     use Dossier.Schema
 
     schema do
-      field :id,          :integer
+      field :id, :integer
       field :name
       field :description, :string
-      field :price,       :float
+      field :price, :float
     end
   end
 
@@ -53,13 +53,12 @@ defmodule Dossier.SchemaTest do
   end
 
   test "ProductSchema - check dump map to string" do
-    product =
-      %ProductSchema{
-        description: "used in strawberry pies",
-        id: 350,
-        name: "Strawberry",
-        price: 10.0
-      }
+    product = %ProductSchema{
+      description: "used in strawberry pies",
+      id: 350,
+      name: "Strawberry",
+      price: 10.0
+    }
 
     str = "350,Strawberry,used in strawberry pies,10.0"
 
@@ -72,7 +71,7 @@ defmodule Dossier.SchemaTest do
     @delimiter "|"
 
     schema do
-      field :id,          :integer
+      field :id, :integer
       field :name
     end
   end
@@ -104,11 +103,11 @@ defmodule Dossier.SchemaTest do
 
   test "CostumerSchema - check dump schema to string" do
     str = "171|John Doe"
-    customer =
-      %CostumerSchema{
-        id: 171,
-        name: "John Doe"
-      }
+
+    customer = %CostumerSchema{
+      id: 171,
+      name: "John Doe"
+    }
 
     assert CostumerSchema.dump(customer) == str
   end
@@ -119,10 +118,10 @@ defmodule Dossier.SchemaTest do
     @fixed_size 60
 
     schema do
-      field :id,          :integer, size: 6
-      field :name,        :string,  size: 15
-      field :description, :string,  size: 24
-      field :price,       :float,   size: 15
+      field :id, :integer, size: 6
+      field :name, :string, size: 15
+      field :description, :string, size: 24
+      field :price, :float, size: 15
     end
   end
 
