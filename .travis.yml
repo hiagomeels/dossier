@@ -3,10 +3,6 @@ elixir:
   - 1.4.5
   - 1.5.3
   - 1.6.1
-otp_release:
-  - 18.3
-  - 19.3
-  - 20.3
 script: mix test
 before_script: mix credo --strict --mute-exit-status
 notifications:
