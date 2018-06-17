@@ -1,4 +1,7 @@
 # Dossier
+
+[![Build Status](https://travis-ci.org/hiagomeels/dossier.svg?branch=master)](https://travis-ci.org/hiagomeels/dossier)
+
 Dossier the way to parse string in schemas and vice versa.
 
 ## Examples
