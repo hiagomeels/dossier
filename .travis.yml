@@ -3,7 +3,11 @@ elixir:
   - 1.4.5
   - 1.5.3
   - 1.6.1
-script: mix test
-before_script: mix credo --strict --mute-exit-status
+script: 
+  - mix test
+before_script: 
+  - mix credo --strict --mute-exit-status
+  - mix deps.get --only docs
+  - MIX_ENV=docs mix coveralls.travis
 notifications:
   email: hiagomeels@gmail.com
