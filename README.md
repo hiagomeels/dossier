@@ -1,6 +1,6 @@
-# Dossier
-
+# Dossier 
 [![Build Status](https://travis-ci.org/hiagomeels/dossier.svg?branch=master)](https://travis-ci.org/hiagomeels/dossier)
+[![Coverage Status](https://coveralls.io/repos/github/hiagomeels/dossier/badge.svg?branch=master)](https://coveralls.io/github/hiagomeels/dossier?branch=master)
 
 Dossier the way to parse string in schemas and vice versa.
 
