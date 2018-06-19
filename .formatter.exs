@@ -2,7 +2,9 @@
 locals_without_parens = [
   field: 1,
   field: 2,
-  field: 3
+  field: 3,
+  parser: 1,
+  parser: 2
 ]
 
 [

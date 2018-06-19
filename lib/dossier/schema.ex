@@ -1,22 +1,57 @@
 defmodule Dossier.Schema do
-  @moduledoc false
+  @moduledoc """
+  Defines a schema.
+
+  An Dossier schema is used to map any string to Elixir struct.
+
+  ## Example
+
+        defmodule MySchema do
+          use Dossier.Schema
+
+          parser Dossier.Parser.Delimited
+
+          schema do
+            field :id, :integer
+            field :name, :string
+          end
+        end
+
+  """
   defmacro __using__(_) do
     quote do
-      import Dossier.Schema, only: [schema: 1]
+      import Dossier.Schema, only: [parser: 1, parser: 2, schema: 1]
 
-      @delimiter ","
-      @fixed_size false
+      @parser Dossier.Parser.Delimited
 
+      Module.put_attribute(__MODULE__, :opts, [])
       Module.register_attribute(__MODULE__, :fields, accumulate: true)
       Module.register_attribute(__MODULE__, :struct_fields, accumulate: true)
     end
   end
 
-  defmacro schema(do: block) do
-    __schema__(block)
+  @doc """
+  Defines a parser used to encode/decode a strings and structs.
+
+  Default Parser is a Dossier.Parser.Delimited with defaults opts;
+  """
+  defmacro parser(parser, opts \\ []) do
+    quote do
+      parser = unquote(parser)
+
+      opts =
+        parser.default_opts()
+        |> Keyword.merge(unquote(opts))
+
+      Module.put_attribute(__MODULE__, :parser, parser)
+      Module.put_attribute(__MODULE__, :opts, opts)
+    end
   end
 
-  defp __schema__(block) do
+  @doc """
+  Defines a schema used to map any string to Elixir struct.
+  """
+  defmacro schema(do: block) do
     prelude =
       quote do
         try do
@@ -29,35 +64,19 @@ defmodule Dossier.Schema do
 
     postlude =
       quote unquote: false do
-        delimiter = @delimiter
-        fixed_size = @fixed_size
-        fields = @fields |> Enum.reverse()
+        defstruct Module.get_attribute(__MODULE__, :struct_fields)
 
-        if fixed_size do
-          fields
-          |> Enum.map_reduce(0, fn {_, _, opts}, acc ->
-            acc = opts[:size] + acc
-            {0, acc}
-          end)
-          |> elem(1)
-          |> case do
-            size when size == fixed_size ->
-              :size_valid
+        opts = __MODULE__ |> Module.get_attribute(:opts)
+        fields = __MODULE__ |> Module.get_attribute(:fields) |> Enum.reverse()
+        parser = __MODULE__ |> Module.get_attribute(:parser)
 
-            size ->
-              raise ArgumentError, """
-                The mappead size of fields has different of @fixed_size 
-                fixed_size..: #{fixed_size}
-                mappead size: #{size}
-              """
-          end
-        end
-
-        defstruct @struct_fields
-
-        def __schema__(:delimiter), do: unquote(delimiter)
-        def __schema__(:fixed_size), do: unquote(fixed_size)
+        def __opts__, do: unquote(opts)
+        def __parser__, do: unquote(parser)
         def __schema__(:fields), do: unquote(Enum.map(fields, &elem(&1, 0)))
+
+        for {opt, value} <- opts do
+          def __opts__(unquote(opt)), do: unquote(value)
+        end
 
         for {field, type, opts} <- fields do
           def __schema__(:type, unquote(field)), do: unquote(type)
@@ -65,8 +84,11 @@ defmodule Dossier.Schema do
           def __schema__(:opts, unquote(field)), do: unquote(opts)
         end
 
-        def parse(str), do: Dossier.Schema.__parse__(__MODULE__, str)
-        def dump(str), do: Dossier.Schema.__dump__(__MODULE__, str)
+        def decode(str), do: Dossier.Schema.__decode__(__MODULE__, str)
+        def decode!(str), do: Dossier.Schema.__decode__!(__MODULE__, str)
+
+        def encode(schema), do: Dossier.Schema.__encode__(__MODULE__, schema)
+        def encode!(schema), do: Dossier.Schema.__encode__!(__MODULE__, schema)
 
         Module.eval_quoted(__ENV__, [])
       end
@@ -88,112 +110,47 @@ defmodule Dossier.Schema do
     end
   end
 
-  ## Methods
-  @doc """
-    Parses a string into Schema
-  """
-  def parse(_str), do: nil
-
-  @doc false
-  def __parse__(mod, str) when is_binary(str) do
-    struct = mod.__struct__
-    fields = mod.__schema__(:fields)
-    fixed_size = mod.__schema__(:fixed_size)
-
-    if fixed_size do
-      if String.length(str) == fixed_size do
-        map = parse_fixed(mod, fields, str)
-        Map.merge(struct, map)
-      else
-        {:error, :invalid_size}
-      end
-    else
-      map = parse_delimited(mod, fields, str)
-      Map.merge(struct, map)
-    end
-  end
-
-  def __parse__(_mod, _str), do: {:error, :invalid_string}
-
-  defp parse_delimited(mod, fields, str) do
-    delimiter = mod.__schema__(:delimiter)
-    values = str |> String.split(delimiter)
-
-    fields
-    |> Enum.with_index()
-    |> Enum.map(fn {field, idx} ->
-      type = mod.__schema__(:type, field)
-      value = Enum.at(values, idx)
-
-      {field, parse_field(value, type)}
-    end)
-    |> Enum.into(%{})
-  end
-
-  defp parse_fixed(mod, fields, str) do
-    fields
-    |> Enum.map_reduce(0, fn field, start ->
-      type = mod.__schema__(:type, field)
-      opts = mod.__schema__(:opts, field)
-      size = opts[:size]
-      value = String.slice(str, start, size)
-      start = start + size
-
-      {{field, parse_field(value, type)}, start}
-    end)
-    |> elem(0)
-    |> Enum.into(%{})
-  end
-
-  defp parse_field(value, :string), do: String.trim(value)
-
-  defp parse_field(value, :integer) do
-    value
-    |> String.trim()
-    |> Integer.parse()
-    |> case do
-      {int, _} -> int
-      _ -> :invalid_parse
-    end
-  end
-
-  defp parse_field(value, :float) do
-    value
-    |> String.trim()
-    |> Float.parse()
-    |> case do
-      {float, _} -> float
-      _ -> :invalid_parse
-    end
-  end
-
-  @doc """
-    Dump a Schema into string
-  """
-  def dump(_schema), do: false
-
-  @doc false
-  def __dump__(mod, schema) do
-    delimiter = mod.__schema__(:delimiter)
-    fields = mod.__schema__(:fields)
-
-    fields
-    |> Enum.map(fn field ->
-      schema
-      |> Map.has_key?(field)
-      |> case do
-        true -> schema |> Map.get(field) |> to_string
-        _ -> raise ArgumentError, "then field :#{inspect(field)} not found in schema"
-      end
-    end)
-    |> Enum.join(delimiter)
-  end
-
   ## Callbacks
+  def __decode__(mod, str) do
+    parser = mod.__parser__()
+
+    mod
+    |> parser.decode(str)
+    |> case do
+      {:ok, map} -> {:ok, Map.merge(mod.__struct__(), map)}
+      err -> err
+    end
+  end
+
+  def __decode__!(mod, str) do
+    mod
+    |> __decode__(str)
+    |> case do
+      {:ok, map} -> map
+      _ -> raise RuntimeError, "An error occurred when encode the string"
+    end
+  end
+
+  def __encode__(mod, schema) do
+    parser = mod.__parser__()
+    parser.encode(mod, schema)
+  end
+
+  def __encode__!(mod, schema) do
+    mod
+    |> __encode__(schema)
+    |> case do
+      {:ok, str} -> str
+      _ -> raise RuntimeError, "An error occurred when decode the string"
+    end
+  end
+
   @doc false
   def __field__(mod, name, type, opts) do
+    parser = Module.get_attribute(mod, :parser)
+
+    parser.check_field(name, type, opts)
     check_field_type!(name, type, opts)
-    check_field_size!(mod, name, opts)
     define_field(mod, name, type, opts)
   end
 
@@ -203,19 +160,6 @@ defmodule Dossier.Schema do
 
   defp check_field_type!(name, type, _opts) do
     raise ArgumentError, "invalid type #{type} for field #{inspect(name)}."
-  end
-
-  defp check_field_size!(mod, name, opts) do
-    fixed_size = Module.get_attribute(mod, :fixed_size)
-
-    if fixed_size do
-      size = opts[:size] || 0
-
-      if size <= 0 do
-        raise ArgumentError,
-              "a :size opts has required when fixed_lenght is set for field #{inspect(name)}"
-      end
-    end
   end
 
   defp define_field(mod, name, type, opts) do
